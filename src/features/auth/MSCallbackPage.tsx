@@ -1,0 +1,90 @@
+import React, { useEffect, useState } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { api } from '@/api/client';
+import { useAuth } from '@/auth/AuthProvider';
+import './auth.scss';
+import { Button } from 'primereact/Button';
+
+export function MSCallbackPage() {
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const { login } = useAuth();
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const code = searchParams.get('code');
+
+    if (code) {
+      exchangeCode(code);
+    } else {
+      const errorDesc = searchParams.get('error_description');
+      setError(errorDesc || 'No authorization code found in redirect URL.');
+    }
+
+  }, []);
+
+  const exchangeCode = async (code: string) => {
+    try {
+      const redirect_uri = import.meta.env.VITE_AZURE_REDIRECT_URI ||
+        (window.location.origin + '/redirect');
+
+      const response = await api.post('/auth/redirect', {
+        code,
+        redirect_uri,
+      }, { timeout: 30000 });
+
+      if (response.data?.access_token) {
+        await login(response.data.access_token, response.data.refresh_token, response.data);
+        navigate('/', { replace: true });
+      } else {
+        throw new Error('Invalid token response: access_token missing.');
+      }
+    } catch (err: any) {
+      console.error('[SSO Callback Error]', err);
+      const detail = err.response?.data?.detail;
+      const message = typeof detail === 'string' ? detail : (err.message || 'Token exchange failed');
+      setError(message);
+    }
+  };
+
+  if (error) {
+    return (
+      <div className="auth-wrapper">
+        <div className="auth-error-card">
+          <div className="auth-error-icon">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#ef4444" strokeWidth="2" strokeLinecap="round">
+              <circle cx="12" cy="12" r="10" />
+              <line x1="15" y1="9" x2="9" y2="15" />
+              <line x1="9" y1="9" x2="15" y2="15" />
+            </svg>
+          </div>
+          <h2 className="auth-error-title">Authentication Failed</h2>
+          <p className="auth-error-message">{error}</p>
+          <Button
+            onClick={() => navigate('/login')}
+            className="auth-retry-btn"
+            label="← Return to Login"
+          />
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="auth-wrapper">
+      <div className="auth-callback-container">
+        { }
+        <div className="auth-spinner-outer">
+          <div className="auth-spinner-ring" />
+          <div className="auth-spinner-pulse" />
+          <div className="auth-spinner-dot" />
+        </div>
+        <h2 className="auth-loading-title">Authenticating</h2>
+        <p className="auth-loading-subtitle">Securely verifying your identity with Microsoft…</p>
+        <div className="auth-progress-bar">
+          <div className="auth-progress-fill" />
+        </div>
+      </div>
+    </div>
+  );
+}
