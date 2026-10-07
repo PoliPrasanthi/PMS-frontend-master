@@ -2,6 +2,7 @@ import { ProjectCreateChatForm } from './forms/ProjectCreateChatForm';
 import { TaskCreateChatForm } from './forms/TaskCreateChatForm';
 import { TaskListCreateChatForm } from './forms/TaskListCreateChatForm';
 import { IssueCreateChatForm } from './forms/IssueCreateChatForm';
+import { MilestoneCreateChatForm } from './forms/MilestoneCreateChatForm';
 
 interface ChatMessageProps {
     message: any;
@@ -102,31 +103,49 @@ export function ChatMessage({
                                 )}
 
                                 {/* Task list create form */}
+
                                 {message.responseType === 'form' &&
-                                message.data?.form_type === 'create_tasklist' && (
-                                    <TaskListCreateChatForm
-                                        onSubmit={(data) =>
-                                            onFormSubmit(message.id, data)
-                                        }
-                                        onCancel={() =>
-                                            onFormCancel(message.id)
-                                        }
-                                        loading={loading}
-                                    />
-                                )}
+                                    message.data?.form_type === 'create_tasklist' && (
+                                        <TaskListCreateChatForm
+                                            onSubmit={(data) =>
+                                                onFormSubmit(message.id, data)
+                                            }
+                                            onCancel={() =>
+                                                onFormCancel(message.id)
+                                            }
+                                            loading={loading}
+                                        />
+                                    )}
+
                                 {/* Issue create form */}
+
                                 {message.responseType === 'form' &&
-                                message.data?.form_type === 'create_issue' && (
-                                    <IssueCreateChatForm
-                                        onSubmit={(data) =>
-                                            onFormSubmit(message.id, data)
-                                        }
-                                        onCancel={() =>
-                                            onFormCancel(message.id)
-                                        }
-                                        loading={loading}
-                                    />
-                                )}  
+                                    message.data?.form_type === 'create_issue' && (
+                                        <IssueCreateChatForm
+                                            onSubmit={(data) =>
+                                                onFormSubmit(message.id, data)
+                                            }
+                                            onCancel={() =>
+                                                onFormCancel(message.id)
+                                            }
+                                            loading={loading}
+                                        />
+                                    )}
+
+                                {/* Milestone create form */}
+
+                                {message.responseType === 'form' &&
+                                    message.data?.form_type === 'create_milestone' && (
+                                        <MilestoneCreateChatForm
+                                            onSubmit={(data) =>
+                                                onFormSubmit(message.id, data)
+                                            }
+                                            onCancel={() =>
+                                                onFormCancel(message.id)
+                                            }
+                                            loading={loading}
+                                        />
+                                    )}
 
                             {/* TASK CREATE FORM */}
 

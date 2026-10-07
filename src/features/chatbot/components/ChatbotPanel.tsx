@@ -34,6 +34,10 @@ export function ChatbotPanel() {
     const menuRef =
         useRef<HTMLDivElement>(null);
 
+    // ADDED: reference to the bottom of the messages
+    const messagesEndRef =
+        useRef<HTMLDivElement | null>(null);
+
     const [
         theme,
         setTheme,
@@ -88,6 +92,7 @@ export function ChatbotPanel() {
             value: confirmation.data[key] ?? {},
         };
     };
+
     const formatConfirmationLabel = (key: string) =>
         key
             .replace(/_/g, ' ')
@@ -151,6 +156,24 @@ export function ChatbotPanel() {
             setConfirmation(null);
         }
     }, [open]);
+
+    /*
+     * ADDED:
+     * Automatically scroll to the latest message
+     * whenever the messages array changes.
+     */
+    useEffect(() => {
+        if (!open) {
+            return;
+        }
+
+        requestAnimationFrame(() => {
+            messagesEndRef.current?.scrollIntoView({
+                behavior: 'auto',
+                block: 'end',
+            });
+        });
+    }, [open, messages]);
 
     const firstName =
         user?.first_name ||
@@ -844,6 +867,10 @@ export function ChatbotPanel() {
                     )
                 )}
 
+                {/* ADDED: bottom reference for auto-scroll */}
+
+                <div ref={messagesEndRef} />
+
                 {/* LOADING */}
 
                 {loading && (
@@ -875,36 +902,48 @@ export function ChatbotPanel() {
             </div>
 
             {/* CONFIRMATION POPUP */}
+
             {confirmation?.data && (() => {
-                const entity = getConfirmationEntity();
+
+                const entity =
+                    getConfirmationEntity();
 
                 if (!entity) {
                     return null;
                 }
 
                 const { key, value } = entity;
-                const title = formatConfirmationLabel(key);
 
-                const entries = Object.entries(value ?? {}).filter(
-                    ([field]) =>
-                        ![
-                            'requires_confirmation',
-                            'response_type',
-                            'type',
-                            'action',
-                        ].includes(field),
-                );
+                const title =
+                    formatConfirmationLabel(key);
+
+                const entries =
+                    Object.entries(
+                        value ?? {}
+                    ).filter(
+                        ([field]) =>
+                            ![
+                                'requires_confirmation',
+                                'response_type',
+                                'type',
+                                'action',
+                            ].includes(field),
+                    );
 
                 return (
                     <div className="absolute inset-0 z-[100] flex items-center justify-center bg-black/45 p-4">
+
                         <div
                             className="w-full max-w-[350px] rounded-2xl border border-slate-200 bg-white p-5 shadow-2xl dark:border-slate-700 dark:bg-slate-900"
                             role="dialog"
                             aria-modal="true"
                             aria-labelledby="creation-confirmation-title"
                         >
+
                             <div className="flex items-start justify-between gap-3">
+
                                 <div>
+
                                     <h3
                                         id="creation-confirmation-title"
                                         className="text-base font-bold text-slate-900 dark:text-white"
@@ -915,49 +954,74 @@ export function ChatbotPanel() {
                                     <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
                                         Please review the details before creating the record.
                                     </p>
+
                                 </div>
 
                                 <button
                                     type="button"
-                                    onClick={handleConfirmationCancel}
-                                    disabled={loading}
+                                    onClick={
+                                        handleConfirmationCancel
+                                    }
+                                    disabled={
+                                        loading
+                                    }
                                     className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-40 dark:hover:bg-slate-800"
                                     aria-label="Close confirmation"
                                 >
                                     <X size={16} />
                                 </button>
+
                             </div>
 
                             <div className="mt-4 max-h-64 overflow-y-auto rounded-xl border border-slate-200 bg-slate-50 p-3 dark:border-slate-700 dark:bg-slate-800/60">
+
                                 <div className="space-y-2">
+
                                     {entries.length === 0 ? (
+
                                         <p className="text-sm text-slate-500 dark:text-slate-400">
                                             No additional details available.
                                         </p>
-                                    ) : (
-                                        entries.map(([field, fieldValue]) => (
-                                            <div
-                                                key={field}
-                                                className="flex items-start justify-between gap-4 border-b border-slate-200 pb-2 last:border-b-0 last:pb-0 dark:border-slate-700"
-                                            >
-                                                <span className="text-xs font-medium text-slate-500 dark:text-slate-400">
-                                                    {formatConfirmationLabel(field)}
-                                                </span>
 
-                                                <span className="max-w-[190px] break-words text-right text-xs font-semibold text-slate-800 dark:text-slate-100">
-                                                    {formatConfirmationValue(fieldValue)}
-                                                </span>
-                                            </div>
-                                        ))
+                                    ) : (
+
+                                        entries.map(
+                                            ([field, fieldValue]) => (
+
+                                                <div
+                                                    key={field}
+                                                    className="flex items-start justify-between gap-4 border-b border-slate-200 pb-2 last:border-b-0 last:pb-0 dark:border-slate-700"
+                                                >
+
+                                                    <span className="text-xs font-medium text-slate-500 dark:text-slate-400">
+                                                        {formatConfirmationLabel(field)}
+                                                    </span>
+
+                                                    <span className="max-w-[190px] break-words text-right text-xs font-semibold text-slate-800 dark:text-slate-100">
+                                                        {formatConfirmationValue(fieldValue)}
+                                                    </span>
+
+                                                </div>
+
+                                            )
+                                        )
+
                                     )}
+
                                 </div>
+
                             </div>
 
                             <div className="mt-5 flex gap-2">
+
                                 <button
                                     type="button"
-                                    onClick={handleConfirmationCancel}
-                                    disabled={loading}
+                                    onClick={
+                                        handleConfirmationCancel
+                                    }
+                                    disabled={
+                                        loading
+                                    }
                                     className="flex-1 rounded-xl border border-slate-300 px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40 dark:border-slate-600 dark:text-slate-200 dark:hover:bg-slate-800"
                                 >
                                     Cancel
@@ -965,16 +1029,26 @@ export function ChatbotPanel() {
 
                                 <button
                                     type="button"
-                                    onClick={handleConfirm}
-                                    disabled={loading}
+                                    onClick={
+                                        handleConfirm
+                                    }
+                                    disabled={
+                                        loading
+                                    }
                                     className="flex-1 rounded-xl bg-emerald-500 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-emerald-600 disabled:cursor-not-allowed disabled:opacity-40"
                                 >
-                                    {loading ? 'Creating...' : `Confirm ${title}`}
+                                    {loading
+                                        ? 'Creating...'
+                                        : `Confirm ${title}`}
                                 </button>
+
                             </div>
+
                         </div>
+
                     </div>
                 );
+
             })()}
 
             {/* INPUT AREA */}
